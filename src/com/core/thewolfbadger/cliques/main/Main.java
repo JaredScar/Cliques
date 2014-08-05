@@ -84,6 +84,17 @@ public class Main extends JavaPlugin {
             sender.sendMessage(ChatColor.RED+""+ChatColor.BOLD+"That clique already exists!");
         }
     }
+    public FileConfiguration getCliques() {
+        File f = new File(this.getDataFolder(), File.separator+"cliques.yml");
+        if(!f.exists()) {
+            try {
+                f.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return YamlConfiguration.loadConfiguration(f);
+    }
     public void toggleFF(Player sender, String clique, Boolean b) {
         File f = new File(this.getDataFolder(), File.separator+"cliques.yml");
         if(!f.exists()) {

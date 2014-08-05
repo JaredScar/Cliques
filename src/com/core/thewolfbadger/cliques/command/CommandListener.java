@@ -6,9 +6,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
@@ -34,14 +36,33 @@ public class CommandListener implements CommandExecutor, Listener {
         }
     }
     @EventHandler
+    public void onPvP(EntityDamageByEntityEvent e) {
+        Entity ent = e.getEntity();
+        Entity dam = e.getDamager();
+        if(ent instanceof Player && dam instanceof Player) {
+            Player p1 = (Player) ent;
+            Player p2 = (Player) dam;
+            if(m.hasClique(p1) && m.hasClique(p2)) {
+                if(m.getClique(p1).equals(m.getClique(p2))) {
+                    if(!m.getCliques().getBoolean("Cliques."+m.getClique(p1)+".FriendlyFire")) {
+                        e.setCancelled(true);
+                        p2.sendMessage(ChatColor.translateAlternateColorCodes('&', m.getSettings().getString("Messages.YouCanNotHurtTeammate")));
+                    } else {
+                        e.setCancelled(false);
+                    }
+                }
+            }
+        }
+    }
+    @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         if(e.getEntity().getKiller() !=null) {
-                double d = m.getRating(e.getEntity())*m.getSettings().getDouble("PercentGainedFromKill");
+                double d = m.getSettings().getDouble("RatingGainedFromKill");
                 double toSet2 = m.getRating(e.getEntity().getKiller())+d;
                 m.setRating(e.getEntity().getKiller(), toSet2);
                 e.getEntity().getKiller().sendMessage(ChatColor.translateAlternateColorCodes('&', m.getSettings().getString("Messages.GainedMoreRatingFromKill")).replace("{KILLED}", e.getEntity().getName()));
         }
-        double i = m.getRating(e.getEntity())*m.getSettings().getDouble("PercentLostFromDeath");
+        double i = m.getSettings().getDouble("RatingLostFromDeath");
         double toSet = m.getRating(e.getEntity())-i;
         m.setRating(e.getEntity(), toSet);
         e.getEntity().sendMessage(ChatColor.translateAlternateColorCodes('&', m.getSettings().getString("Messages.LostRatingFromDeath")).replace("{KILLER}", e.getEntity().getKiller().getName()));
